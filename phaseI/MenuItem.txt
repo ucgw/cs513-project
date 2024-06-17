@@ -1,0 +1,60 @@
+field notes:
+  - id:
+    each record has unique non-null values and thus is sufficient to be a PK for the table.
+    #
+    #
+    > NOHEAD=1 ./quickref.py data/dirty/MenuItem.csv 0 1332726 id | cut -d'|' -f1 | sort -u | wc -l
+1332726
+
+    # > ./quickref.py data/dirty/MenuItem.csv 0 1 | grep record
+records: 1332726
+
+
+  - menu_page_id:
+    there are 0 menu_page_ids that DO NOT exist in the MenuPage table as its PK id field
+    #
+    #
+    > 
+
+
+  - dish_id:
+    there are 241 missing FK values:
+    #
+    #
+    > cat MenuItem_DishIds | grep -nvP '^[0-9]+' | wc -l
+241
+    #
+    #
+    > ./find_fk_pk_violations.py MenuItem_DishIds DishIds 
+Error Caught: invalid literal for int() with base 10: ''
+
+DEBUG LINE: file: MenuItem_DishIds line no: 17059  ::
+Usage: ./find_fk_pk_violations.py <FK filename> <PK filename>
+    #
+    #
+    # example record with missing FK value
+    #
+    > sed -n '17060p' data/dirty/MenuItem.csv 
+19171,6706,,,,2011-04-21 15:37:27 UTC,2011-04-21 15:45:51 UTC,0.25,0.91085
+    #
+    #
+    # to get the full list of records missing dish_id FK values I ran:
+    #
+    > for LINENUMBER in `cat MenuItem_DishIds | grep -nvP '^[0-9]+' | cut -d: -f1`;do IDX=$(expr $LINENUMBER - 1);NOHEAD=1 ./quickref.py data/dirty/MenuItem.csv $IDX 1 id dish_id;done > dish_ids_empty_values_from_MenuItem_table
+    #
+    #
+    # 3 FK values are non-existent PK values in the Dish table
+    #
+    #
+    > ./find_fk_pk_violations.py MenuItem_DishIds DishIds 1
+unique FKs: 414138
+unique PKs: 423397
+FKs not in PKs: 3
+395403
+220797
+329183
+    #
+    #
+    # to get the full list of records with invalid FK values I ran:
+    #
+    > for INVALID_FK in `NOHEAD=1 ./find_fk_pk_violations.py MenuItem_DishIds DishIds 1`;do ./quickref.py data/dirty/MenuItem.csv 0 1332726 id dish_id | grep -P "\| $INVALID_FK \|";done > dish_ids_missing_from_Dish_table

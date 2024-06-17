@@ -1,0 +1,20 @@
+field notes:
+  - id:
+    each record has unique non-null values and thus is sufficient to be a PK for the table.
+    #
+    #
+    > NOHEAD=1 ./quickref.py data/dirty/Dish.csv 0 423397 id | cut -d'|' -f1 | sort -u | wc -l
+423397
+
+    # > ./quickref.py data/dirty/Dish.csv 0 1 | grep record
+records: 423397
+
+
+    there are places where id isn't monotonically increasing by 1
+    e.g.
+    > NOHEAD=1 ./quickref.py data/dirty/Dish.csv 4 3 id
+5 |
+7 | <--- next one isn't 6
+8 | 
+
+

@@ -1,0 +1,42 @@
+field notes:
+  - id:
+    each record has unique non-null values and thus is sufficient to be a PK for the table.
+    #
+    #
+    > NOHEAD=1 ./quickref.py data/dirty/MenuPage.csv 0 66937 id | cut -d'|' -f1 | sort -u | wc -l
+66937
+
+    > ./quickref.py data/dirty/MenuPage.csv 0 1 | grep record
+records: 66937
+
+
+  - menu_id:
+    there are 2271 menu_ids that are used that DO NOT exist in the Menu table as its PK id field
+    #
+    #
+    > NOHEAD=1 ./quickref.py data/dirty/Menu.csv 0 17545 id | cut -d'|' -f1 > MenuIds
+    #
+    #
+    > NOHEAD=1 ./quickref.py data/dirty/MenuPage.csv 0 66937 menu_id | cut -d'|' -f1 > MenuPage_MenuIds
+    #
+    #
+    > for ID in `cat MenuPage_MenuIds`;do IS_MENUID_IN_MENU=$(grep -w $ID MenuIds); if [ -z $IS_MENUID_IN_MENU ];then echo "MenuPage menu_id: $ID is missing from Menu table";fi;done | sort -u > menu_ids_missing_from_Menu_table
+    #
+    #
+    > wc -l menu_ids_missing_from_Menu_table
+2271 menu_ids_missing_from_Menu_table
+    #
+    #
+    # example content in menu_ids_missing_from_Menu_table:
+    #
+    > head -5 menu_ids_missing_from_Menu_table
+MenuPage menu_id: 12460 is missing from Menu table
+MenuPage menu_id: 12461 is missing from Menu table
+MenuPage menu_id: 12462 is missing from Menu table
+MenuPage menu_id: 12544 is missing from Menu table
+MenuPage menu_id: 12566 is missing from Menu table
+    #
+    #
+    # to get the full list of records with invalid FK values I ran: 
+    #
+    > for INVALID_FK in `NOHEAD=1 ./find_fk_pk_violations.py MenuPage_MenuIds MenuIds 1`;do ./quickref.py data/dirty/MenuPage.csv 0 66937 id menu_id | grep -P "\| $INVALID_FK \|";done > menu_ids_missing_from_Menu_table
